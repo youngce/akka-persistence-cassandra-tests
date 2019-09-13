@@ -1,4 +1,5 @@
-import akka.actor.Props
+import Counter.Add
+import akka.actor.{ActorSystem, Props}
 import akka.persistence.PersistentActor
 
 object Counter{
@@ -20,8 +21,19 @@ class Counter extends PersistentActor{
   }
   override def receiveCommand: Receive = {
     case Add(amount)=>
+
       persist(Added(amount))(evt=>updateTotal(evt.amount))
   }
 
   override def persistenceId: String = self.path.name
+}
+object Main extends App{
+  val system =ActorSystem("sys")
+  val counter=system.actorOf(Counter.props(),"counter")
+  while (true){
+    val amount=scala.io.StdIn.readLine("Add: ").toIntOption.getOrElse(1)
+
+    counter ! Add(amount)
+  }
+
 }
